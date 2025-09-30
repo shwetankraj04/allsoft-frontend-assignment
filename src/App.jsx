@@ -1,17 +1,15 @@
 import { Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import AdminUserCreate from "./pages/AdminUserCreate";
 
 function App() {
   return (
-    <>
-      <Navbar />
-      <div className="container mt-4">
-        <Routes>
-          <Route path="/" element={<Login />} />
-        </Routes>
-      </div>
-    </>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/admin" element={<AdminUserCreate />} />
+    </Routes>
   );
 }
 

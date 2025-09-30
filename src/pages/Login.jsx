@@ -1,101 +1,121 @@
 import { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Container, Row, Col, Form, Button, Alert } from "react-bootstrap";
 
 export default function Login() {
+  const [step, setStep] = useState(1);
   const [mobile, setMobile] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
-  const navigate = useNavigate(); // for redirect
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleGenerateOtp = async () => {
+  // Generate OTP
+  const handleGenerateOTP = async () => {
+    setError("");
+    setMessage("");
     try {
-      const res = await fetch(
+      const res = await axios.post(
         "https://apis.allsoft.co/api/documentManagement/generateOTP",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mobile_number: mobile }),
-        }
+        { mobile_number: mobile }
       );
-      const data = await res.json();
-      if (res.ok) {
-        setOtpSent(true);
-        setMessage("OTP sent successfully!");
-        console.log("Generate OTP Response:", data); // check API response
+      if (res.data.status) {
+        setMessage("OTP sent successfully.");
+        setStep(2);
       } else {
-        setMessage(data.message || "Error sending OTP");
+        setError(res.data.data || "Failed to send OTP.");
       }
     } catch (err) {
-      setMessage("Network error: " + err.message);
+      setError("Error while generating OTP.");
     }
   };
 
-  const handleValidateOtp = async () => {
+  // Validate OTP
+  const handleValidateOTP = async () => {
+    setError("");
+    setMessage("");
     try {
-      const res = await fetch(
+      const res = await axios.post(
         "https://apis.allsoft.co/api/documentManagement/validateOTP",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mobile_number: mobile, otp }),
-        }
+        { mobile_number: mobile, otp }
       );
-      const data = await res.json();
-      if (res.ok && data.token) {
-        localStorage.setItem("token", data.token);
+
+      if (res.data.status) {
+        // Real token from backend
+        localStorage.setItem("token", res.data.data.token);
         setMessage("Login successful!");
-        // Redirect to Upload page
-        navigate("/upload");
+        navigate("/dashboard");
       } else {
-        setMessage(data.message || "Invalid OTP");
+        setError(res.data.data || "Invalid OTP.");
       }
     } catch (err) {
-      setMessage("Network error: " + err.message);
+      setError("Error while validating OTP.");
     }
+  };
+
+  // Demo Login (frontend testing only)
+  const handleDemoLogin = () => {
+    localStorage.setItem("token", "dummy_token_for_assignment");
+    setMessage("Demo login successful. Using dummy token.");
+    navigate("/dashboard");
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: "400px" }}>
-      <h3 className="mb-4 text-center">Login with OTP</h3>
+    <Container className="mt-5">
+      <Row className="justify-content-md-center">
+        <Col md={6}>
+          <h3 className="mb-4 text-center">Login</h3>
 
-      {!otpSent ? (
-        <>
-          <input
-            type="text"
-            className="form-control mb-3"
-            placeholder="Enter Mobile Number"
-            value={mobile}
-            onChange={(e) => setMobile(e.target.value)}
-          />
-          <button
-            className="btn btn-primary w-100"
-            onClick={handleGenerateOtp}
-            disabled={!mobile}
-          >
-            Generate OTP
-          </button>
-        </>
-      ) : (
-        <>
-          <input
-            type="text"
-            className="form-control mb-3"
-            placeholder="Enter OTP"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-          />
-          <button
-            className="btn btn-success w-100"
-            onClick={handleValidateOtp}
-            disabled={!otp}
-          >
-            Validate OTP
-          </button>
-        </>
-      )}
+          {error && <Alert variant="danger">{error}</Alert>}
+          {message && <Alert variant="success">{message}</Alert>}
 
-      {message && <div className="alert alert-info mt-3">{message}</div>}
-    </div>
+          <Form>
+            {step === 1 && (
+              <>
+                <Form.Group controlId="mobile">
+                  <Form.Label>Mobile Number</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter mobile number"
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value)}
+                  />
+                </Form.Group>
+                <Button className="mt-3 w-100" onClick={handleGenerateOTP}>
+                  Get OTP
+                </Button>
+              </>
+            )}
+
+            {step === 2 && (
+              <>
+                <Form.Group controlId="otp">
+                  <Form.Label>Enter OTP</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                  />
+                </Form.Group>
+                <Button className="mt-3 w-100" onClick={handleValidateOTP}>
+                  Validate OTP
+                </Button>
+              </>
+            )}
+          </Form>
+
+          <hr />
+          <Button
+            variant="secondary"
+            className="w-100 mt-2"
+            onClick={handleDemoLogin}
+          >
+            Demo Login (Frontend Testing)
+          </Button>
+        </Col>
+      </Row>
+    </Container>
   );
 }
