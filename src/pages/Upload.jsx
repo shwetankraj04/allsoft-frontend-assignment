@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Container, Row, Col, Form, Button, Alert } from "react-bootstrap";
 
@@ -15,28 +15,33 @@ export default function Upload() {
   const [error, setError] = useState("");
 
   const token = localStorage.getItem("token");
+  const fileInputRef = useRef(null);
 
-  // Fetch existing tags from backend
-  const fetchTags = async (term = "") => {
-    try {
-      const res = await axios.post(
-        "https://apis.allsoft.co/api/documentManagement/documentTags",
-        { term },
-        { headers: { token } }
-      );
-      return res.data?.data || [];
-    } catch (err) {
-      console.warn("Error fetching tags:", err);
-      return [];
-    }
-  };
+  // Fetch existing tags from backend on mount
+  useEffect(() => {
+    const fetchTags = async () => {
+      if (!token) return;
+      try {
+        const res = await axios.post(
+          "https://apis.allsoft.co/api/documentManagement/documentTags",
+          { term: "" },
+          { headers: { token } }
+        );
+        const existingTags = res.data?.data || [];
+        // setTags(existingTags.map((t) => t.tag_name));
+      } catch (err) {
+        console.warn("Error fetching tags:", err);
+      }
+    };
+    fetchTags();
+  }, [token]);
 
   // Handle Major Head change
   useEffect(() => {
     if (majorHead === "Personal") {
-      setMinorOptions(["John", "Tom", "Emily"]); // Static names
+      setMinorOptions(["John", "Tom", "Emily"]);
     } else if (majorHead === "Professional") {
-      setMinorOptions(["Accounts", "HR", "IT", "Finance"]); // Departments
+      setMinorOptions(["Accounts", "HR", "IT", "Finance"]);
     } else {
       setMinorOptions([]);
     }
@@ -44,7 +49,7 @@ export default function Upload() {
   }, [majorHead]);
 
   // Handle adding a tag
-  const handleAddTag = async () => {
+  const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
       setTagInput("");
@@ -58,7 +63,11 @@ export default function Upload() {
     if (!selectedFile) return;
 
     const allowedTypes = ["application/pdf", "image/png", "image/jpeg"];
-    if (!allowedTypes.includes(selectedFile.type)) {
+    const ext = selectedFile.name.split(".").pop().toLowerCase();
+    if (
+      !allowedTypes.includes(selectedFile.type) &&
+      !["pdf", "png", "jpg", "jpeg"].includes(ext)
+    ) {
       setError("Only PDF and Image files are allowed.");
       return;
     }
@@ -69,18 +78,19 @@ export default function Upload() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) {
-      setError("Please select a file to upload.");
+
+    if (!majorHead || !minorHead || !documentDate || !file) {
+      setError("Please fill all required fields and select a file.");
       return;
     }
 
     const data = {
       major_head: majorHead,
       minor_head: minorHead,
-      document_date: documentDate,
+      document_date: documentDate.split("-").reverse().join("-"), // convert YYYY-MM-DD to DD-MM-YYYY
       document_remarks: remarks,
       tags: tags.map((tag) => ({ tag_name: tag })),
-      user_id: "demo_user", // Replace with logged in user ID if needed
+      user_id: "demo_user", // Replace with logged-in user ID if needed
     };
 
     const formData = new FormData();
@@ -93,6 +103,7 @@ export default function Upload() {
         formData,
         { headers: { token, "Content-Type": "multipart/form-data" } }
       );
+
       if (res.data.status) {
         setMessage("File uploaded successfully!");
         setError("");
@@ -103,6 +114,7 @@ export default function Upload() {
         setTags([]);
         setFile(null);
         setRemarks("");
+        if (fileInputRef.current) fileInputRef.current.value = "";
       } else {
         setError(res.data.data || "Upload failed.");
       }
@@ -122,7 +134,6 @@ export default function Upload() {
           {message && <Alert variant="success">{message}</Alert>}
 
           <Form onSubmit={handleSubmit}>
-            {/* Major Head */}
             <Form.Group className="mb-3">
               <Form.Label>Category (Major Head)</Form.Label>
               <Form.Select
@@ -135,7 +146,6 @@ export default function Upload() {
               </Form.Select>
             </Form.Group>
 
-            {/* Minor Head */}
             <Form.Group className="mb-3">
               <Form.Label>
                 {majorHead === "Personal" ? "Name" : "Department"}
@@ -153,7 +163,6 @@ export default function Upload() {
               </Form.Select>
             </Form.Group>
 
-            {/* Date Picker */}
             <Form.Group className="mb-3">
               <Form.Label>Document Date</Form.Label>
               <Form.Control
@@ -163,7 +172,6 @@ export default function Upload() {
               />
             </Form.Group>
 
-            {/* Tags */}
             <Form.Group className="mb-3">
               <Form.Label>Tags</Form.Label>
               <div className="d-flex">
@@ -190,7 +198,6 @@ export default function Upload() {
               </div>
             </Form.Group>
 
-            {/* Remarks */}
             <Form.Group className="mb-3">
               <Form.Label>Remarks</Form.Label>
               <Form.Control
@@ -201,10 +208,13 @@ export default function Upload() {
               />
             </Form.Group>
 
-            {/* File */}
             <Form.Group className="mb-3">
               <Form.Label>Upload File (PDF/Image)</Form.Label>
-              <Form.Control type="file" onChange={handleFileChange} />
+              <Form.Control
+                type="file"
+                onChange={handleFileChange}
+                ref={fileInputRef}
+              />
             </Form.Group>
 
             <Button type="submit" className="w-100">
