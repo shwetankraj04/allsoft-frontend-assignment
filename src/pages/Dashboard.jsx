@@ -4,10 +4,6 @@ import { useNavigate } from "react-router-dom";
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  const handleUploadClick = () => {
-    navigate("/upload");
-  };
-
   return (
     <Container className="mt-5 text-center">
       <h2>Welcome to Document Management System</h2>
@@ -15,14 +11,11 @@ export default function Dashboard() {
 
       <Row className="justify-content-center mt-4">
         <Col md={4}>
-          <Button className="w-100 mb-3" onClick={handleUploadClick}>
+          <Button className="w-100 mb-3" onClick={() => navigate("/upload")}>
             Upload Document
           </Button>
 
-          <Button
-            className="w-100"
-            onClick={() => alert("Search Page coming soon")}
-          >
+          <Button className="w-100" onClick={() => navigate("/search")}>
             Search Documents
           </Button>
         </Col>
