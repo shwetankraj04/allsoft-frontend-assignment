@@ -25,7 +25,6 @@ export default function Navbar() {
                 Login
               </Link>
             </li>
-            {/* We'll add more links (Upload, Search, Admin) later */}
           </ul>
         </div>
       </div>

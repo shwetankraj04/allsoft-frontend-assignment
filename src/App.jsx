@@ -31,7 +31,21 @@ export default function App() {
           <Link className="navbar-brand" to="/upload">
             Document Management
           </Link>
-          <div className="collapse navbar-collapse">
+
+          {/* Mobile toggle button */}
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span className="navbar-toggler-icon"></span>
+          </button>
+
+          <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav me-auto">
               <li className="nav-item">
                 <Link className="nav-link" to="/upload">

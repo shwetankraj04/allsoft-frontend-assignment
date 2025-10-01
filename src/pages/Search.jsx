@@ -26,14 +26,12 @@ export default function Search() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // Redirect to login if no token
   useEffect(() => {
     if (!token) {
       navigate("/login", { replace: true });
     }
   }, [token, navigate]);
 
-  // Update minor options when majorHead changes
   useEffect(() => {
     if (majorHead === "Personal") setMinorOptions(["John", "Tom", "Emily"]);
     else if (majorHead === "Professional")
@@ -42,7 +40,6 @@ export default function Search() {
     setMinorHead("");
   }, [majorHead]);
 
-  // Add a tag
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
@@ -50,12 +47,10 @@ export default function Search() {
     }
   };
 
-  // Remove a tag
   const handleRemoveTag = (tagToRemove) => {
     setTags(tags.filter((t) => t !== tagToRemove));
   };
 
-  // Perform search
   const handleSearch = async () => {
     setError("");
     setMessage("");
@@ -185,7 +180,6 @@ export default function Search() {
         </Col>
       </Row>
 
-      {/* Tags */}
       <Row className="mb-3">
         <Col md={6}>
           <Form.Group>
@@ -223,7 +217,6 @@ export default function Search() {
         </Col>
       </Row>
 
-      {/* Results Table */}
       {results.length > 0 && (
         <>
           <Button

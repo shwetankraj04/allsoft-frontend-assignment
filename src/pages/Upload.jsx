@@ -17,7 +17,6 @@ export default function Upload() {
   const token = localStorage.getItem("token");
   const fileInputRef = useRef(null);
 
-  // Fetch existing tags from backend on mount
   useEffect(() => {
     const fetchTags = async () => {
       if (!token) return;
@@ -48,16 +47,13 @@ export default function Upload() {
     setMinorHead("");
   }, [majorHead]);
 
-  // Handle adding a tag
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
       setTagInput("");
-      // Optionally, call backend to save new tag
     }
   };
 
-  // Handle file selection
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
@@ -75,7 +71,6 @@ export default function Upload() {
     setFile(selectedFile);
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -87,10 +82,10 @@ export default function Upload() {
     const data = {
       major_head: majorHead,
       minor_head: minorHead,
-      document_date: documentDate.split("-").reverse().join("-"), // convert YYYY-MM-DD to DD-MM-YYYY
+      document_date: documentDate.split("-").reverse().join("-"),
       document_remarks: remarks,
       tags: tags.map((tag) => ({ tag_name: tag })),
-      user_id: "demo_user", // Replace with logged-in user ID if needed
+      user_id: "demo_user",
     };
 
     const formData = new FormData();

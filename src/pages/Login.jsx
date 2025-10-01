@@ -21,17 +21,13 @@ export default function Login({ setToken }) {
       return;
     }
 
-    // Demo mode token
     const demoToken = "demo-token";
 
-    // Set token in App state
     setToken(demoToken);
 
-    // Mark login success; useEffect will handle redirect
     setLoginSuccess(true);
   };
 
-  // Redirect only when loginSuccess is true and token is set
   useEffect(() => {
     if (loginSuccess) {
       navigate("/upload");
